@@ -1,6 +1,6 @@
 {
   "name": "evw-validation-rules",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A list of validation rules for all Electronic Visa Wavier applications to use",
   "main": "index.js",
   "scripts": {
