@@ -1,21 +1,32 @@
 'use strict';
 
 const moment = require('moment');
+require('moment-timezone');
 const rules = require('../../../index')['evw-self-serve']['departure-date'];
 
 describe('rules/evw-self-serve/departure-date', function() {
-  let model = {
-    get: function (key) {
-      return this.attributes[key];
-    },
-    attributes: {}
-  };
+  let flightDetails;
+  let model;
+
+  beforeEach(function() {
+    flightDetails = {
+      departureDateRaw: moment().add(2, 'days').format('YYYY-MM-DD'),
+      departureTime: moment().add(10, 'minutes').tz('Asia/Dubai').format('HH:mm'),
+      departureTimezone: 'Asia/Dubai'
+    };
+    model = {
+      get: function() {
+        return flightDetails;
+      }
+    };
+  });
+
+  it('should return false in no issues are found', function() {
+    rules('32-08-2016', model).should.be.false;
+  });
 
   it('should be a valid date', function() {
-    model.attributes = {
-      'arrival-date': moment().subtract(1, 'day')
-    };
-
+    flightDetails.departureDateRaw = '2016-08-32';
     rules('32-08-2016', model).should.deep.equal({
       length: {
         minimum: 100,
@@ -24,28 +35,26 @@ describe('rules/evw-self-serve/departure-date', function() {
     });
   });
 
-  it('should be less than 1 day in the past', function() {
-    model.attributes = {
-      'arrival-date': moment().add(2, 'days')
-    };
-
-    rules(moment(), model).should.deep.equal({
+  it('should be within 3 months', function() {
+    const threeMonthsInFuture = moment().add(3, 'months').add(1, 'day').format('YYYY-MM-DD');
+    flightDetails.departureDateRaw = threeMonthsInFuture;
+    rules(threeMonthsInFuture, model).should.deep.equal({
       length: {
-        minimum: 100,
-        message: 'departure-date.in-past'
+        minimum: 12,
+        message: 'departure-date.too-far-in-future'
       }
     });
   });
 
-  it('should be more than 1 day in the future', function() {
-    model.attributes = {
-      'arrival-date': moment().subtract(2, 'days')
-    };
-
-    rules(moment(), model).should.deep.equal({
+  it('should be at least 48 hours in the future', function() {
+    const twoDaysInFuture = moment().add(2, 'days').format('YYYY-MM-DD');
+    const oneMinuteInFuture = moment().subtract(1, 'minute').tz('Asia/Dubai').format('HH:mm');
+    flightDetails.departureDateRaw = twoDaysInFuture;
+    flightDetails.departureTime = oneMinuteInFuture;
+    rules(twoDaysInFuture, model).should.deep.equal({
       length: {
-        minimum: 100,
-        message: 'departure-date.in-future'
+        minimum: 12,
+        message: 'departure-date.within-48-hours'
       }
     });
   });
