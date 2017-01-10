@@ -4,6 +4,9 @@ const moment = require('moment');
 const utils = require('../lib/utils');
 
 module.exports = (fieldValue, model) => {
+  if (model.get('flightDetails') === null) {
+    return false;
+  }
   const departureDate = model.get('flightDetails').departureDateRaw;
   const departureTime = model.get('flightDetails').departureTime;
   const departureTimezone = model.get('flightDetails').departureTimezone;

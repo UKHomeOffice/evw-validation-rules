@@ -21,8 +21,13 @@ describe('rules/evw-self-serve/departure-date', function() {
     };
   });
 
+  it('should return false if flight details do not exist', function() {
+    flightDetails = null;
+    rules('01-08-2016', model).should.be.false;
+  });
+
   it('should return false in no issues are found', function() {
-    rules('32-08-2016', model).should.be.false;
+    rules('01-08-2016', model).should.be.false;
   });
 
   it('should be a valid date', function() {
