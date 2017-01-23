@@ -1,13 +1,20 @@
 'use strict';
 
 const moment = require('moment');
+const utils = require('../lib/utils');
 
 module.exports = (fieldValue, model) => {
-  let departureDate = moment(fieldValue, 'DD-MM-YYYY');
-  let arrivalDateMinusOneDay = moment(model.get('arrival-date'), 'DD-MM-YYYY').subtract(1, 'day');
-  let arrivalDatePlusOneDay = moment(model.get('arrival-date'), 'DD-MM-YYYY').add(1, 'day');
+  if (model.get('flightDetails') === null) {
+    return false;
+  }
+  const departureDate = model.get('flightDetails').departureDateRaw;
+  const departureTime = model.get('flightDetails').departureTime;
+  const departureTimezone = model.get('flightDetails').departureTimezone;
+  const departureDateTime = utils.momentDate({date: departureDate, time: departureTime, timezone: departureTimezone}).tz('Europe/London');
+  const threeMonths = moment().add(3, 'months');
+  const fourtyEight = moment().add(48, 'hours');
 
-  if (!departureDate.isValid()) {
+  if (!departureDateTime.isValid()) {
     return {
       length: {
         minimum: 100,
@@ -16,20 +23,20 @@ module.exports = (fieldValue, model) => {
     };
   }
 
-  if (departureDate.isBefore(arrivalDateMinusOneDay)) {
+  if (threeMonths.isBefore(departureDateTime, 'second')) {
     return {
       length: {
-        minimum: 100,
-        message: 'departure-date.in-past'
+        minimum: 12,
+        message: 'departure-date.too-far-in-future'
       }
     };
   }
 
-  if (departureDate.isAfter(arrivalDatePlusOneDay)) {
+  if (fourtyEight.isAfter(departureDateTime, 'second')) {
     return {
       length: {
-        minimum: 100,
-        message: 'departure-date.in-future'
+        minimum: 12,
+        message: 'departure-date.within-48-hours'
       }
     };
   }

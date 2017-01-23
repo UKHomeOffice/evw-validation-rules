@@ -8,9 +8,7 @@ describe('index', function () {
       it('should be an object', function () {
         rules['evw-self-serve'].should.be.an('object')
         .contain.all.keys([
-          'arrival-date',
           'departure-date',
-          'departure-time',
           'evw-number',
           'flight-number'
         ]);
